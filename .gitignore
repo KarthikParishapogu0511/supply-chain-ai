@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.pyc
+
+.env
+
+backend/app/ml/model.pkl
+
+node_modules/
+
+dist/
+
+.vscode/
+
+.idea/
+
+*.db
