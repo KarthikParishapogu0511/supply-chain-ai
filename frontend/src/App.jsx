@@ -21,6 +21,7 @@ function App() {
   const [summary, setSummary] = useState(null);
   const [history, setHistory] = useState([]);
   const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
 
   const [form, setForm] = useState({
     Shipping_Mode: "Standard Class",
@@ -39,16 +40,16 @@ function App() {
   }, []);
 
   const loadDashboard = async () => {
-
-    const summaryRes =
-      await api.get("/dashboard/summary");
-
-    const historyRes =
-      await api.get("/prediction/history");
-
-    setSummary(summaryRes.data);
-    setHistory(historyRes.data);
-
+    try {
+      setError(null);
+      const summaryRes = await api.get("/dashboard/summary");
+      const historyRes = await api.get("/prediction/history");
+      setSummary(summaryRes.data);
+      setHistory(historyRes.data);
+    } catch (err) {
+      console.error("Error loading dashboard data:", err);
+      setError(err.message || "Failed to fetch data from the server.");
+    }
   };
 
   const handleChange = (e) => {
@@ -76,6 +77,39 @@ function App() {
     loadDashboard();
 
   };
+
+  if (error) {
+    return (
+      <div style={{ padding: "2rem", textAlign: "center", fontFamily: "sans-serif" }}>
+        <h2 style={{ color: "#e53e3e" }}>Failed to Load Dashboard</h2>
+        <p style={{ color: "#4a5568" }}>{error}</p>
+        <div style={{ marginTop: "1.5rem", padding: "1.5rem", backgroundColor: "#f7fafc", borderRadius: "8px", display: "inline-block", textAlign: "left", maxWidth: "600px", border: "1px solid #e2e8f0" }}>
+          <h4 style={{ margin: "0 0 0.5rem 0", color: "#2d3748" }}>Troubleshooting Steps:</h4>
+          <ol style={{ lineHeight: "1.6", margin: 0, paddingLeft: "1.2rem", color: "#4a5568" }}>
+            <li>
+              Make sure you have set the <strong>VITE_API_URL</strong> environment variable in Vercel to point to your deployed backend (e.g., <code>https://your-backend.onrender.com</code>).
+            </li>
+            <li>
+              <strong>Redeploy the application in Vercel</strong> after setting or modifying the environment variable. Vercel needs to rebuild the frontend to inject it.
+            </li>
+            <li>
+              Verify that your backend on Render is up, running, and not spinning down due to Render's free tier inactivity.
+            </li>
+            <li>
+              Check the browser's developer console (F12 or right-click → Inspect → Console) for detailed error logs (e.g., CORS or Mixed Content errors).
+            </li>
+          </ol>
+        </div>
+        <br />
+        <button 
+          onClick={loadDashboard} 
+          style={{ marginTop: "1.5rem", padding: "0.6rem 1.2rem", backgroundColor: "#3182ce", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontSize: "1rem" }}
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   if (!summary)
     return <h2>Loading Dashboard...</h2>;
